@@ -102,6 +102,13 @@
             android:layout_gravity="center"
             android:id="@+id/btStart"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Data"
+            android:layout_gravity="center"
+            android:id="@+id/btData"/>
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

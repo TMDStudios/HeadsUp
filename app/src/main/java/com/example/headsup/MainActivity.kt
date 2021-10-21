@@ -1,5 +1,6 @@
 package com.example.headsup
 
+import android.content.Intent
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,16 +8,14 @@ import android.os.CountDownTimer
 import android.view.Surface
 import android.widget.*
 import androidx.core.view.isVisible
-import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.Main
-import org.json.JSONArray
-import org.json.JSONObject
-import java.lang.Exception
-import java.net.URL
+import com.example.headsup.database.Celebrity
+import com.example.headsup.database.DatabaseHandler
 import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var dbHandler: DatabaseHandler
+
     private lateinit var llTop: LinearLayout
     private lateinit var llMain: LinearLayout
     private lateinit var llCelebrity: LinearLayout
@@ -30,15 +29,18 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tvMain: TextView
     private lateinit var btStart: Button
+    private lateinit var btData: Button
 
     private var gameActive = false
-    private lateinit var celebrities: ArrayList<JSONObject>
+    private lateinit var celebrities: ArrayList<Celebrity>
 
     private var celeb = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        dbHandler = DatabaseHandler(this)
 
         llTop = findViewById(R.id.llTop)
         llMain = findViewById(R.id.llMain)
@@ -53,7 +55,13 @@ class MainActivity : AppCompatActivity() {
 
         tvMain = findViewById(R.id.tvMain)
         btStart = findViewById(R.id.btStart)
-        btStart.setOnClickListener { requestAPI() }
+        btStart.setOnClickListener { getCelebrities() }
+
+        btData = findViewById(R.id.btData)
+        btData.setOnClickListener {
+            val intent = Intent(this, Data::class.java)
+            startActivity(intent)
+        }
 
         celebrities = arrayListOf()
     }
@@ -83,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             gameActive = true
             tvMain.text = "Please Rotate Device"
             btStart.isVisible = false
+            btData.isVisible = false
             val rotation = windowManager.defaultDisplay.rotation
             if(rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180){
                 updateStatus(false)
@@ -100,6 +109,7 @@ class MainActivity : AppCompatActivity() {
                     tvTime.text = "Time: --"
                     tvMain.text = "Heads Up!"
                     btStart.isVisible = true
+                    btData.isVisible = true
                     updateStatus(false)
                 }
             }.start()
@@ -108,50 +118,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun newCelebrity(id: Int){
         if(id < celebrities.size){
-            tvName.text = celebrities[id].getString("name")
-            tvTaboo1.text = celebrities[id].getString("taboo1")
-            tvTaboo2.text = celebrities[id].getString("taboo2")
-            tvTaboo3.text = celebrities[id].getString("taboo3")
+            tvName.text = celebrities[id].name
+            tvTaboo1.text = celebrities[id].taboo1
+            tvTaboo2.text = celebrities[id].taboo2
+            tvTaboo3.text = celebrities[id].taboo3
         }
     }
 
-    private fun requestAPI(){
-        CoroutineScope(Dispatchers.IO).launch {
-            val data = async {
-                getCelebrities()
-            }.await()
-            if(data.isNotEmpty()){
-                withContext(Main){
-                    parseJSON(data)
-                    celebrities.shuffle()
-                    newCelebrity(0)
-                    newTimer()
-                }
-            }else{
-
-            }
-        }
-    }
-
-    private suspend fun parseJSON(result: String){
-        withContext(Dispatchers.Main){
-            celebrities.clear()
-            val jsonArray = JSONArray(result)
-            for(i in 0 until jsonArray.length()){
-                celebrities.add(jsonArray.getJSONObject(i))
-            }
-        }
-    }
-
-    private fun getCelebrities(): String{
-        var response = ""
-        try {
-            response = URL("https://dojo-recipes.herokuapp.com/celebrities/")
-                .readText(Charsets.UTF_8)
-        }catch (e: Exception){
-            println("Error: $e")
-        }
-        return response
+    fun getCelebrities(){
+        celebrities = dbHandler.getCelebrities()
+        celebrities.shuffle()
+        newCelebrity(0)
+        newTimer()
     }
 
     private fun updateStatus(showCelebrity: Boolean){
