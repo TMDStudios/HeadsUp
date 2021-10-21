@@ -1,5 +1,6 @@
 package com.example.headsup
 
+import android.content.Intent
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tvMain: TextView
     private lateinit var btStart: Button
+    private lateinit var btData: Button
 
     private var gameActive = false
     private lateinit var celebrities: ArrayList<JSONObject>
@@ -54,6 +56,12 @@ class MainActivity : AppCompatActivity() {
         tvMain = findViewById(R.id.tvMain)
         btStart = findViewById(R.id.btStart)
         btStart.setOnClickListener { requestAPI() }
+
+        btData = findViewById(R.id.btData)
+        btData.setOnClickListener {
+            val intent = Intent(this, Data::class.java)
+            startActivity(intent)
+        }
 
         celebrities = arrayListOf()
     }

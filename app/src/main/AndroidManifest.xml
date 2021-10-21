@@ -12,11 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HeadsUp">
         <activity
+            android:name=".Data"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:screenOrientation="fullSensor"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            >
+            android:exported="true"
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
